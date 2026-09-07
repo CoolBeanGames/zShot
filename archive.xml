@@ -1,5 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zShot" nextIndex="9">
+<tasks project="zShot" nextIndex="10">
+  <task id="ZS-6">
+    <name>update on rightclick</name>
+    <prompt>add update to rightclick menu, when clicked it checks for a new update and follows update procedure if it finds one.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>true</build>
+    <release>true</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Added Check for Update to right click menu.</notes>
+    <filesChanged>main.cpp</filesChanged>
+    <image></image>
+  </task>
+  <task id="ZS-7">
+    <name>add about</name>
+    <prompt>add an about section when you click about in right click menu. opens a window (with zUI see design,txt) with information as set in subtasks</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Added About window with zUI</notes>
+    <filesChanged>main.cpp, CMakeLists.txt, ui.g.cpp, ui/about.zml</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">the app icon</subtask>
+      <subtask done="true">app name</subtask>
+      <subtask done="true">version number</subtask>
+      <subtask done="true">ok button</subtask>
+    </subtasks>
+  </task>
   <task id="ZS-5">
     <name>check github repo for new releases, create update script</name>
     <prompt>on launch the application should check github repo for a new release based on build number (in zShot_5 the build number is 5) compare that against local and if it is a newer released launch helper script zShotUpdate, zShot update downloads the update, replaces the files (except the updated script) and relaunches zShot before closing itself.</prompt>

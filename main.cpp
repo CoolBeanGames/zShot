@@ -17,7 +17,7 @@
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "wininet.lib")
 
-#define CURRENT_BUILD_NUMBER 8
+#define CURRENT_BUILD_NUMBER 9
 
 void CheckForUpdates(HWND hwnd) {
     HINTERNET hInternet = InternetOpen(L"zShot", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
@@ -320,9 +320,18 @@ void OpenAboutWindow(HWND parent) {
     
     hAboutWnd = CreateWindowEx(0, L"zShotAboutWnd", L"About zShot", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 400, 250, parent, NULL, hInst, NULL);
     
+    wchar_t exePath[MAX_PATH] = {0};
+    GetModuleFileName(NULL, exePath, MAX_PATH);
+    std::wstring exeDir = exePath;
+    exeDir = exeDir.substr(0, exeDir.find_last_of(L"\\/"));
+    char exeDirA[MAX_PATH] = {0};
+    WideCharToMultiByte(CP_UTF8, 0, exeDir.c_str(), -1, exeDirA, MAX_PATH, NULL, NULL);
+    std::string coreRoot = std::string(exeDirA) + "\\zui";
+    
     aboutUi = std::make_unique<zui::Host>(hAboutWnd);
-    aboutUi->set_core_root("zui");
+    aboutUi->set_core_root(coreRoot);
     build_ui(*aboutUi, {});
+    aboutUi->set_theme("holo");
     aboutUi->on("close-about", [](const std::string&) {
         PostMessage(hAboutWnd, WM_CLOSE, 0, 0);
     });

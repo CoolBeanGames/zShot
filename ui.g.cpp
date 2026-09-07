@@ -15,7 +15,7 @@ constexpr const char* kZslDocument = R"ZSL(<!DOCTYPE html>
 <link rel="stylesheet" href="zui/css/themes/clean.css">
 </head>
 <body>
-<div class="zui-html"><div class="zui-link"></div><div class="zui-link"></div><div class="zui-script"></div><div class="zui-script"></div><div class="zui-body"><div class="zui-panel"><div class="zui-panel__body zui-panel__body--flush"><div class="zui-col zui-gap-2"><div class="zui-row zui-gap-2"><div class="zui-img"></div><div class="zui-col zui-gap-2"><span>zShot</span><span>Version 8 (Build 8)</span></div></div><div class="zui-row zui-gap-2"><button class="zui-btn" id="ok-btn" data-zui-id="ok">OK</button></div></div></div></div><div class="zui-script">zui.receive(&quot;ok&quot;, function() {
+<div class="zui-html"><div class="zui-link"></div><div class="zui-link"></div><div class="zui-script"></div><div class="zui-script"></div><div class="zui-body"><div class="zui-panel"><div class="zui-panel__body zui-panel__body--flush"><div class="zui-col zui-gap-2"><div class="zui-row zui-gap-2"><div class="zui-img"></div><div class="zui-col zui-gap-2"><span>zShot</span><span>Build 9</span></div></div><div class="zui-row zui-gap-2"><button class="zui-btn" id="ok-btn" data-zui-id="ok">OK</button></div></div></div></div><div class="zui-script">zui.receive(&quot;ok&quot;, function() {
             zui.send(&quot;close-about&quot;, {});
         });</div></div></div>
 <script>window.__zslState = {};</script>

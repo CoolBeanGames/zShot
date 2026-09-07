@@ -1,39 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zShot" nextIndex="9">
-  <task id="ZS-7">
-    <name>add about</name>
-    <prompt>add an about section when you click about in right click menu. opens a window (with zUI see design,txt) with information as set in subtasks</prompt>
-    <requirements></requirements>
-    <inProgress>true</inProgress>
-    <done>false</done>
-    <bug>false</bug>
-    <error>false</error>
-    <errorMessage></errorMessage>
-    <lockKey>haptic99</lockKey>
-    <locked>false</locked>
-    <archived>false</archived>
-    <blockedBy></blockedBy>
-    <dateStarted></dateStarted>
-    <dueDate></dueDate>
-    <commit>true</commit>
-    <build>false</build>
-    <release>false</release>
-    <merge>false</merge>
-    <branch>main</branch>
-    <tags></tags>
-    <notes></notes>
-    <filesChanged></filesChanged>
-    <image></image>
-    <subtasks>
-      <subtask done="false">the app icon</subtask>
-      <subtask done="false">app name</subtask>
-      <subtask done="false">version number</subtask>
-      <subtask done="false">ok button</subtask>
-    </subtasks>
-  </task>
-  <task id="ZS-6">
-    <name>update on rightclick</name>
-    <prompt>add update to rightclick menu, when clicked it checks for a new update and follows update procedure if it finds one.</prompt>
+<tasks project="zShot" nextIndex="10">
+  <task id="ZS-9">
+    <name>about window needs themed</name>
+    <prompt>it is currently missing the holo theming, if is says build 8 we dont need version 8 also</prompt>
     <requirements></requirements>
     <inProgress>false</inProgress>
     <done>false</done>
@@ -54,6 +23,6 @@
     <tags></tags>
     <notes></notes>
     <filesChanged></filesChanged>
-    <image></image>
+    <image>ZS-9.png</image>
   </task>
 </tasks>
