@@ -1,6 +1,6 @@
 <manifest>
-  <item name="zShot.exe" version="3" />
-  <item name="zShot_updater.ps1" version="3" />
-  <item name="ui.g.cpp" version="3" />
-  <item name="zui" version="3" />
+  <item name="zShot.exe" version="4" />
+  <item name="zShot_updater.ps1" version="4" />
+  <item name="ui.g.cpp" version="4" />
+  <item name="zui" version="4" />
 </manifest>
