@@ -10,7 +10,7 @@
                 <img src="icon.png" width="64" height="64" />
                 <col class="gap-2">
                     <text class="fs-20 bold">zShot</text>
-                    <text class="fs-13">Build 17</text>
+                    <text class="fs-13">Build 18</text>
                 </col>
             </row>
             <button export="ok" class="mt-4">OK</button>

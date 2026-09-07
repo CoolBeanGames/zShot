@@ -17,7 +17,7 @@
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "wininet.lib")
 
-#define CURRENT_BUILD_NUMBER 17
+#define CURRENT_BUILD_NUMBER 18
 
 #include <thread>
 #include <urlmon.h>
@@ -31,7 +31,7 @@ void CheckForUpdates(HWND hwnd) {
     std::wstring scriptPath = exeDir + L"\\zShot_updater.ps1";
 
     std::thread([exeDir, scriptPath]() {
-        std::wstring args = L"-ExecutionPolicy Bypass -WindowStyle Hidden -File \"" + scriptPath + L"\"";
+        std::wstring args = L"-ExecutionPolicy Bypass -WindowStyle Hidden -File \"" + scriptPath + L"\" -ScriptDir \"" + exeDir + L"\"";
 
         SHELLEXECUTEINFO sei = { sizeof(sei) };
         sei.fMask = SEE_MASK_NOCLOSEPROCESS;
