@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tasks project="zShot" nextIndex="4">
+  <task id="ZS-2">
+    <name>add copy</name>
+    <prompt>When we save a screenshot also copy it to the clipboard so it can just be copied anywhere</prompt>
+    <requirements></requirements>
+    <inProgress>true</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey>antigravity</lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">add CopyToClipboard function to main.cpp</subtask>
+      <subtask done="true">call CopyToClipboard after SaveBitmapToPng in StartCapture</subtask>
+    </subtasks>
+  </task>
+  <task id="ZS-1">
+    <name>Screenshot Tool</name>
+    <prompt>Create a C++ based screenshot tool that lives in the notification tray. Right-click menu for 'take screenshot' and 'exit'. Screen darkens, drag region to select (which is not darkened). Save to Pictures/zShotCaptures/[date]_[time].png. Push release build to github.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image></image>
+  </task>
+</tasks>

@@ -124,6 +124,32 @@ void DrawOverlay(HWND hwnd) {
     EndPaint(hwnd, &ps);
 }
 
+void CopyToClipboard(HBITMAP hBmp, int x, int y, int w, int h) {
+    if (w <= 0 || h <= 0) return;
+    if (OpenClipboard(NULL)) {
+        EmptyClipboard();
+        HDC hdcScreen = GetDC(NULL);
+        HDC hdcMem = CreateCompatibleDC(hdcScreen);
+        HBITMAP hCopy = CreateCompatibleBitmap(hdcScreen, w, h);
+        HBITMAP hOld = (HBITMAP)SelectObject(hdcMem, hCopy);
+        
+        HDC hdcSrc = CreateCompatibleDC(hdcScreen);
+        HBITMAP hOldSrc = (HBITMAP)SelectObject(hdcSrc, hBmp);
+        
+        BitBlt(hdcMem, 0, 0, w, h, hdcSrc, x, y, SRCCOPY);
+        
+        SelectObject(hdcSrc, hOldSrc);
+        DeleteDC(hdcSrc);
+        
+        SelectObject(hdcMem, hOld);
+        DeleteDC(hdcMem);
+        ReleaseDC(NULL, hdcScreen);
+        
+        SetClipboardData(CF_BITMAP, hCopy);
+        CloseClipboard();
+    }
+}
+
 void StartCapture() {
     screenX = GetSystemMetrics(SM_XVIRTUALSCREEN);
     screenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
@@ -174,6 +200,7 @@ void StartCapture() {
                     
                     if (rw > 0 && rh > 0) {
                         SaveBitmapToPng(hScreenBmp, rx, ry, rw, rh);
+                        CopyToClipboard(hScreenBmp, rx, ry, rw, rh);
                     }
                     DestroyWindow(hwnd);
                 }
@@ -219,7 +246,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             nid.uID = 1;
             nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
             nid.uCallbackMessage = WM_TRAYICON;
-            nid.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+            nid.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(101)); // 101 is IDI_APP_ICON
             wcscpy_s(nid.szTip, L"zShot");
             Shell_NotifyIcon(NIM_ADD, &nid);
             return 0;
