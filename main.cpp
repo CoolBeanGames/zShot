@@ -17,11 +17,24 @@
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "wininet.lib")
 
-#define CURRENT_BUILD_NUMBER 18
+#define CURRENT_BUILD_NUMBER 19
 
 #include <thread>
 #include <urlmon.h>
 #pragma comment(lib, "urlmon.lib")
+
+void WriteLog(const std::wstring& logPath, const std::string& msg) {
+    HANDLE hFile = CreateFile(logPath.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile != INVALID_HANDLE_VALUE) {
+        SYSTEMTIME st;
+        GetLocalTime(&st);
+        char buf[512];
+        int n = snprintf(buf, sizeof(buf), "[%02d:%02d:%02d] %s\r\n", st.wHour, st.wMinute, st.wSecond, msg.c_str());
+        DWORD written;
+        WriteFile(hFile, buf, n, &written, NULL);
+        CloseHandle(hFile);
+    }
+}
 
 void CheckForUpdates(HWND hwnd) {
     wchar_t exePath[MAX_PATH] = {0};
@@ -29,9 +42,22 @@ void CheckForUpdates(HWND hwnd) {
     std::wstring exeDir = exePath;
     exeDir = exeDir.substr(0, exeDir.find_last_of(L"\\/"));
     std::wstring scriptPath = exeDir + L"\\zShot_updater.ps1";
+    std::wstring logPath = exeDir + L"\\zShot_update.log";
 
-    std::thread([exeDir, scriptPath]() {
-        std::wstring args = L"-ExecutionPolicy Bypass -WindowStyle Hidden -File \"" + scriptPath + L"\" -ScriptDir \"" + exeDir + L"\"";
+    std::thread([exeDir, scriptPath, logPath]() {
+        WriteLog(logPath, "CheckForUpdates called");
+        WriteLog(logPath, "exeDir: " + std::string(exeDir.begin(), exeDir.end()));
+        WriteLog(logPath, "scriptPath: " + std::string(scriptPath.begin(), scriptPath.end()));
+
+        // Check if the script exists
+        DWORD attr = GetFileAttributes(scriptPath.c_str());
+        if (attr == INVALID_FILE_ATTRIBUTES) {
+            WriteLog(logPath, "ERROR: updater script not found!");
+            return;
+        }
+        WriteLog(logPath, "Script found. Launching PowerShell...");
+
+        std::wstring args = L"-ExecutionPolicy Bypass -File \"" + scriptPath + L"\" -ScriptDir \"" + exeDir + L"\"";
 
         SHELLEXECUTEINFO sei = { sizeof(sei) };
         sei.fMask = SEE_MASK_NOCLOSEPROCESS;
@@ -40,10 +66,20 @@ void CheckForUpdates(HWND hwnd) {
         sei.lpFile = L"powershell.exe";
         sei.lpParameters = args.c_str();
         sei.lpDirectory = exeDir.c_str();
-        sei.nShow = SW_HIDE;
+        sei.nShow = SW_SHOW; // Visible so user can see errors
 
-        ShellExecuteEx(&sei);
-        if (sei.hProcess) CloseHandle(sei.hProcess);
+        if (ShellExecuteEx(&sei)) {
+            WriteLog(logPath, "PowerShell launched OK");
+            if (sei.hProcess) {
+                WaitForSingleObject(sei.hProcess, 300000); // wait up to 5 min
+                DWORD exitCode = 0;
+                GetExitCodeProcess(sei.hProcess, &exitCode);
+                WriteLog(logPath, "PowerShell exited with code: " + std::to_string(exitCode));
+                CloseHandle(sei.hProcess);
+            }
+        } else {
+            WriteLog(logPath, "ERROR: ShellExecuteEx failed, code: " + std::to_string(GetLastError()));
+        }
     }).detach();
 }
 
