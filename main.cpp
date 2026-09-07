@@ -8,12 +8,57 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <wininet.h>
 
 #pragma comment(lib, "gdiplus.lib")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "wininet.lib")
+
+#define CURRENT_BUILD_NUMBER 5
+
+void CheckForUpdates(HWND hwnd) {
+    HINTERNET hInternet = InternetOpen(L"zShot", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+    if (!hInternet) return;
+    
+    HINTERNET hConnect = InternetConnect(hInternet, L"github.com", INTERNET_DEFAULT_HTTPS_PORT, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0);
+    if (hConnect) {
+        const wchar_t* acceptTypes[] = { L"*/*", NULL };
+        HINTERNET hRequest = HttpOpenRequest(hConnect, L"HEAD", L"/CoolBeanGames/zShot/releases/latest", NULL, NULL, acceptTypes, INTERNET_FLAG_SECURE | INTERNET_FLAG_NO_AUTO_REDIRECT, 0);
+        if (hRequest) {
+            if (HttpSendRequest(hRequest, NULL, 0, NULL, 0)) {
+                DWORD statusCode = 0;
+                DWORD length = sizeof(statusCode);
+                HttpQueryInfo(hRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, &statusCode, &length, NULL);
+                
+                if (statusCode == 302 || statusCode == 301) {
+                    wchar_t location[1024] = {0};
+                    length = sizeof(location);
+                    if (HttpQueryInfo(hRequest, HTTP_QUERY_LOCATION, location, &length, NULL)) {
+                        std::wstring loc(location);
+                        size_t pos = loc.find(L"zShot_");
+                        if (pos != std::wstring::npos) {
+                            int latestBuild = _wtoi(loc.c_str() + pos + 6);
+                            if (latestBuild > CURRENT_BUILD_NUMBER) {
+                                std::wstring args = L"-ExecutionPolicy Bypass -WindowStyle Hidden -File zShotUpdate.ps1 " + std::to_wstring(latestBuild);
+                                ShellExecute(NULL, L"open", L"powershell.exe", args.c_str(), NULL, SW_HIDE);
+                                PostMessage(hwnd, WM_CLOSE, 0, 0);
+                            }
+                        }
+                    }
+                }
+            }
+            InternetCloseHandle(hRequest);
+        }
+        InternetCloseHandle(hConnect);
+    }
+    InternetCloseHandle(hInternet);
+}
+
+
+
 
 #define WM_TRAYICON (WM_USER + 1)
 #define ID_TRAY_EXIT 1001
@@ -241,6 +286,7 @@ void StartCapture() {
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
         case WM_CREATE:
+            CheckForUpdates(hwnd);
             nid.cbSize = sizeof(NOTIFYICONDATA);
             nid.hWnd = hwnd;
             nid.uID = 1;
