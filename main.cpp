@@ -17,7 +17,7 @@
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "wininet.lib")
 
-#define CURRENT_BUILD_NUMBER 14
+#define CURRENT_BUILD_NUMBER 16
 
 #include <thread>
 #include <urlmon.h>
@@ -288,6 +288,10 @@ void OpenAboutWindow(HWND parent) {
     
     WNDCLASS wc = {};
     wc.lpfnWndProc = [](HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT {
+        if (msg == WM_CLOSE) {
+            DestroyWindow(hwnd);
+            return 0;
+        }
         if (msg == WM_DESTROY) {
             aboutUi.reset();
             hAboutWnd = NULL;
@@ -312,11 +316,11 @@ void OpenAboutWindow(HWND parent) {
     
     aboutUi = std::make_unique<zui::Host>(hAboutWnd);
     aboutUi->set_core_root(coreRoot);
-    build_ui(*aboutUi, {});
     aboutUi->set_theme("holo");
     aboutUi->on("ok", [](const std::string&) {
-        PostMessage(hAboutWnd, WM_CLOSE, 0, 0);
+        if (hAboutWnd) DestroyWindow(hAboutWnd);
     });
+    build_ui(*aboutUi, {});
 }
 
 #define ID_TRAY_EXIT 1001
