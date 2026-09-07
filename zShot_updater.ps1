@@ -25,7 +25,7 @@ if (Test-Path $LocalManifestPath) {
     $NewUpdater = $NewManifest.manifest.item | Where-Object { $_.name -eq "zShot_updater.ps1" }
     $OldUpdater = $OldManifest.manifest.item | Where-Object { $_.name -eq "zShot_updater.ps1" }
     
-    if ($NewUpdater -and ($not $OldUpdater -or $NewUpdater.version -ne $OldUpdater.version)) {
+    if ($NewUpdater -and (-not $OldUpdater -or $NewUpdater.version -ne $OldUpdater.version)) {
         $NeedsUpdaterUpdate = $true
     }
     
