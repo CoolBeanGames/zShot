@@ -4,25 +4,17 @@
 <script src="zui/icons/sprite.js"></script>
 <script src="zui/js/zui.js"></script>
 <body>
-    <panel class="fill pad-16">
-        <col class="gap-16">
-            <row class="gap-16">
-                <!-- App icon - just an image of ZS-4.png or the icon.png -->
-                <img src="../icon.png" width="64" height="64" />
-                <col class="gap-4">
+    <panel class="flush">
+        <col class="gap-4 align-center justify-center p-8" style="height: 100%;">
+            <row class="gap-4 align-center">
+                <img src="icon.png" width="64" height="64" />
+                <col class="gap-2">
                     <text class="fs-20 bold">zShot</text>
                     <text class="fs-13">Build 10</text>
                 </col>
             </row>
-            <row class="gap-8 right">
-                <button id="ok-btn" export="ok">OK</button>
-            </row>
+            <button export="ok" class="mt-4">OK</button>
         </col>
     </panel>
-    <script>
-        zui.receive("ok", function() {
-            zui.send("close-about", {});
-        });
-    </script>
 </body>
 </html>

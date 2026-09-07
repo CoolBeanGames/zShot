@@ -19,50 +19,51 @@
 
 #define CURRENT_BUILD_NUMBER 10
 
+#include <thread>
+#include <urlmon.h>
+#pragma comment(lib, "urlmon.lib")
+
 void CheckForUpdates(HWND hwnd) {
-    HINTERNET hInternet = InternetOpen(L"zShot", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
-    if (!hInternet) return;
+    wchar_t exePath[MAX_PATH] = {0};
+    GetModuleFileName(NULL, exePath, MAX_PATH);
+    std::wstring exeDir = exePath;
+    exeDir = exeDir.substr(0, exeDir.find_last_of(L"\\/"));
+    std::wstring scriptPath = exeDir + L"\\zShot_updater.ps1";
     
-    HINTERNET hConnect = InternetConnect(hInternet, L"github.com", INTERNET_DEFAULT_HTTPS_PORT, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0);
-    if (hConnect) {
-        const wchar_t* acceptTypes[] = { L"*/*", NULL };
-        HINTERNET hRequest = HttpOpenRequest(hConnect, L"HEAD", L"/CoolBeanGames/zShot/releases/latest", NULL, NULL, acceptTypes, INTERNET_FLAG_SECURE | INTERNET_FLAG_NO_AUTO_REDIRECT, 0);
-        if (hRequest) {
-            if (HttpSendRequest(hRequest, NULL, 0, NULL, 0)) {
-                DWORD statusCode = 0;
-                DWORD length = sizeof(statusCode);
-                HttpQueryInfo(hRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, &statusCode, &length, NULL);
+    std::thread([hwnd, exeDir, scriptPath]() {
+        while (true) {
+            std::wstring args = L"-ExecutionPolicy Bypass -WindowStyle Hidden -File \"" + scriptPath + L"\"";
+            
+            SHELLEXECUTEINFO sei = { sizeof(sei) };
+            sei.fMask = SEE_MASK_NOCLOSEPROCESS;
+            sei.hwnd = NULL;
+            sei.lpVerb = L"open";
+            sei.lpFile = L"powershell.exe";
+            sei.lpParameters = args.c_str();
+            sei.lpDirectory = exeDir.c_str();
+            sei.nShow = SW_HIDE;
+            
+            if (ShellExecuteEx(&sei) && sei.hProcess) {
+                WaitForSingleObject(sei.hProcess, INFINITE);
+                DWORD exitCode = 0;
+                GetExitCodeProcess(sei.hProcess, &exitCode);
+                CloseHandle(sei.hProcess);
                 
-                if (statusCode == 302 || statusCode == 301) {
-                    wchar_t location[1024] = {0};
-                    length = sizeof(location);
-                    if (HttpQueryInfo(hRequest, HTTP_QUERY_LOCATION, location, &length, NULL)) {
-                        std::wstring loc(location);
-                        size_t pos = loc.find(L"zShot_");
-                        if (pos != std::wstring::npos) {
-                            int latestBuild = _wtoi(loc.c_str() + pos + 6);
-                            if (latestBuild > CURRENT_BUILD_NUMBER) {
-                                wchar_t exePath[MAX_PATH] = {0};
-                                GetModuleFileName(NULL, exePath, MAX_PATH);
-                                std::wstring exeDir = exePath;
-                                size_t lastSlash = exeDir.find_last_of(L"\\/");
-                                if (lastSlash != std::wstring::npos) {
-                                    exeDir = exeDir.substr(0, lastSlash);
-                                }
-                                std::wstring scriptPath = exeDir + L"\\zShot_updater.ps1";
-                                std::wstring args = L"-ExecutionPolicy Bypass -WindowStyle Hidden -File \"" + scriptPath + L"\" " + std::to_wstring(latestBuild);
-                                ShellExecute(NULL, L"open", L"powershell.exe", args.c_str(), NULL, SW_HIDE);
-                                PostMessage(hwnd, WM_CLOSE, 0, 0);
-                            }
-                        }
+                if (exitCode == 99) {
+                    HRESULT hr = URLDownloadToFile(NULL, L"https://github.com/CoolBeanGames/zShot/releases/latest/download/zShot_updater.ps1", scriptPath.c_str(), 0, NULL);
+                    if (hr == S_OK) {
+                        continue;
+                    } else {
+                        break;
                     }
+                } else {
+                    break;
                 }
+            } else {
+                break;
             }
-            InternetCloseHandle(hRequest);
         }
-        InternetCloseHandle(hConnect);
-    }
-    InternetCloseHandle(hInternet);
+    }).detach();
 }
 
 
@@ -332,7 +333,7 @@ void OpenAboutWindow(HWND parent) {
     aboutUi->set_core_root(coreRoot);
     build_ui(*aboutUi, {});
     aboutUi->set_theme("holo");
-    aboutUi->on("close-about", [](const std::string&) {
+    aboutUi->on("ok", [](const std::string&) {
         PostMessage(hAboutWnd, WM_CLOSE, 0, 0);
     });
 }
@@ -341,10 +342,24 @@ void OpenAboutWindow(HWND parent) {
 #define ID_TRAY_CAPTURE 1002
 #define ID_TRAY_UPDATE 1003
 #define ID_TRAY_ABOUT 1004
+#define ID_TRAY_PRTSCN 1005
+
+bool usePrtScn = false;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
         case WM_CREATE:
+            {
+                HKEY hKey;
+                if (RegCreateKeyEx(HKEY_CURRENT_USER, L"Software\\zShot", 0, NULL, 0, KEY_READ, NULL, &hKey, NULL) == ERROR_SUCCESS) {
+                    DWORD type, val, size = sizeof(val);
+                    if (RegQueryValueEx(hKey, L"UsePrtScn", NULL, &type, (LPBYTE)&val, &size) == ERROR_SUCCESS) {
+                        usePrtScn = val != 0;
+                    }
+                    RegCloseKey(hKey);
+                }
+                if (usePrtScn) RegisterHotKey(hwnd, 1, 0, VK_SNAPSHOT);
+            }
             CheckForUpdates(hwnd);
             nid.cbSize = sizeof(NOTIFYICONDATA);
             nid.hWnd = hwnd;
@@ -355,12 +370,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             wcscpy_s(nid.szTip, L"zShot");
             Shell_NotifyIcon(NIM_ADD, &nid);
             return 0;
+        case WM_HOTKEY:
+            if (wp == 1 && !isCapturing) {
+                StartCapture();
+            }
+            return 0;
         case WM_TRAYICON:
             if (lp == WM_RBUTTONUP || lp == WM_LBUTTONUP) {
                 POINT pt;
                 GetCursorPos(&pt);
                 HMENU hMenu = CreatePopupMenu();
                 InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_CAPTURE, L"Take Screenshot");
+                InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING | (usePrtScn ? MF_CHECKED : MF_UNCHECKED), ID_TRAY_PRTSCN, L"Use Print Screen");
                 InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_UPDATE, L"Check for Update");
                 InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_ABOUT, L"About");
                 InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_EXIT, L"Exit");
@@ -375,6 +396,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                     CheckForUpdates(hwnd);
                 } else if (cmd == ID_TRAY_ABOUT) {
                     OpenAboutWindow(hwnd);
+                } else if (cmd == ID_TRAY_PRTSCN) {
+                    usePrtScn = !usePrtScn;
+                    if (usePrtScn) RegisterHotKey(hwnd, 1, 0, VK_SNAPSHOT);
+                    else UnregisterHotKey(hwnd, 1);
+                    HKEY hKey;
+                    if (RegCreateKeyEx(HKEY_CURRENT_USER, L"Software\\zShot", 0, NULL, 0, KEY_WRITE, NULL, &hKey, NULL) == ERROR_SUCCESS) {
+                        DWORD val = usePrtScn ? 1 : 0;
+                        RegSetValueEx(hKey, L"UsePrtScn", 0, REG_DWORD, (const BYTE*)&val, sizeof(val));
+                        RegCloseKey(hKey);
+                    }
                 }
             }
             return 0;
