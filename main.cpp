@@ -17,7 +17,7 @@
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "wininet.lib")
 
-#define CURRENT_BUILD_NUMBER 7
+#define CURRENT_BUILD_NUMBER 8
 
 void CheckForUpdates(HWND hwnd) {
     HINTERNET hInternet = InternetOpen(L"zShot", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
@@ -49,7 +49,7 @@ void CheckForUpdates(HWND hwnd) {
                                 if (lastSlash != std::wstring::npos) {
                                     exeDir = exeDir.substr(0, lastSlash);
                                 }
-                                std::wstring scriptPath = exeDir + L"\\zShotUpdate.ps1";
+                                std::wstring scriptPath = exeDir + L"\\zShot_updater.ps1";
                                 std::wstring args = L"-ExecutionPolicy Bypass -WindowStyle Hidden -File \"" + scriptPath + L"\" " + std::to_wstring(latestBuild);
                                 ShellExecute(NULL, L"open", L"powershell.exe", args.c_str(), NULL, SW_HIDE);
                                 PostMessage(hwnd, WM_CLOSE, 0, 0);
@@ -291,6 +291,48 @@ void StartCapture() {
     SetFocus(hOverlay);
 }
 
+#include "third_party/zui/bindings/cpp/zui.h"
+
+HWND hAboutWnd = NULL;
+std::unique_ptr<zui::Host> aboutUi;
+
+void build_ui(zui::Host& host, const std::unordered_map<std::string, zui::MessageHandler>& handlers);
+
+void OpenAboutWindow(HWND parent) {
+    if (hAboutWnd) {
+        SetForegroundWindow(hAboutWnd);
+        return;
+    }
+    
+    WNDCLASS wc = {};
+    wc.lpfnWndProc = [](HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT {
+        if (msg == WM_DESTROY) {
+            aboutUi.reset();
+            hAboutWnd = NULL;
+            return 0;
+        }
+        return DefWindowProc(hwnd, msg, wp, lp);
+    };
+    wc.hInstance = hInst;
+    wc.lpszClassName = L"zShotAboutWnd";
+    wc.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(1));
+    RegisterClass(&wc);
+    
+    hAboutWnd = CreateWindowEx(0, L"zShotAboutWnd", L"About zShot", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 400, 250, parent, NULL, hInst, NULL);
+    
+    aboutUi = std::make_unique<zui::Host>(hAboutWnd);
+    aboutUi->set_core_root("zui");
+    build_ui(*aboutUi, {});
+    aboutUi->on("close-about", [](const std::string&) {
+        PostMessage(hAboutWnd, WM_CLOSE, 0, 0);
+    });
+}
+
+#define ID_TRAY_EXIT 1001
+#define ID_TRAY_CAPTURE 1002
+#define ID_TRAY_UPDATE 1003
+#define ID_TRAY_ABOUT 1004
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
         case WM_CREATE:
@@ -310,6 +352,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                 GetCursorPos(&pt);
                 HMENU hMenu = CreatePopupMenu();
                 InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_CAPTURE, L"Take Screenshot");
+                InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_UPDATE, L"Check for Update");
+                InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_ABOUT, L"About");
                 InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_EXIT, L"Exit");
                 SetForegroundWindow(hwnd);
                 int cmd = TrackPopupMenu(hMenu, TPM_RETURNCMD | TPM_NONOTIFY, pt.x, pt.y, 0, hwnd, NULL);
@@ -318,6 +362,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                     PostQuitMessage(0);
                 } else if (cmd == ID_TRAY_CAPTURE) {
                     if (!isCapturing) StartCapture();
+                } else if (cmd == ID_TRAY_UPDATE) {
+                    CheckForUpdates(hwnd);
+                } else if (cmd == ID_TRAY_ABOUT) {
+                    OpenAboutWindow(hwnd);
                 }
             }
             return 0;

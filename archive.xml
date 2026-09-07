@@ -1,5 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zShot" nextIndex="5">
+<tasks project="zShot" nextIndex="9">
+  <task id="ZS-5">
+    <name>check github repo for new releases, create update script</name>
+    <prompt>on launch the application should check github repo for a new release based on build number (in zShot_5 the build number is 5) compare that against local and if it is a newer released launch helper script zShotUpdate, zShot update downloads the update, replaces the files (except the updated script) and relaunches zShot before closing itself.</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>true</build>
+    <release>true</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Implemented WinINet check for GitHub latest release on startup. Created zShotUpdate.ps1 helper to download the new executable and relaunch.</notes>
+    <filesChanged>main.cpp, zShotUpdate.ps1</filesChanged>
+    <image></image>
+    <subtasks>
+      <subtask done="true">zShot check github</subtask>
+      <subtask done="true">zShot updater</subtask>
+      <subtask done="true">zShot update process</subtask>
+      <subtask done="true">relaunch zShot</subtask>
+    </subtasks>
+  </task>
   <task id="ZS-4">
     <name>change zShot Icon</name>
     <prompt>change the icon (executable and notification tray area) to use the attached image exactly as it is, you can resize it if needed but donot generate a new image.</prompt>
