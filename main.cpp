@@ -29,40 +29,21 @@ void CheckForUpdates(HWND hwnd) {
     std::wstring exeDir = exePath;
     exeDir = exeDir.substr(0, exeDir.find_last_of(L"\\/"));
     std::wstring scriptPath = exeDir + L"\\zShot_updater.ps1";
-    
-    std::thread([hwnd, exeDir, scriptPath]() {
-        while (true) {
-            std::wstring args = L"-ExecutionPolicy Bypass -WindowStyle Hidden -File \"" + scriptPath + L"\"";
-            
-            SHELLEXECUTEINFO sei = { sizeof(sei) };
-            sei.fMask = SEE_MASK_NOCLOSEPROCESS;
-            sei.hwnd = NULL;
-            sei.lpVerb = L"open";
-            sei.lpFile = L"powershell.exe";
-            sei.lpParameters = args.c_str();
-            sei.lpDirectory = exeDir.c_str();
-            sei.nShow = SW_HIDE;
-            
-            if (ShellExecuteEx(&sei) && sei.hProcess) {
-                WaitForSingleObject(sei.hProcess, INFINITE);
-                DWORD exitCode = 0;
-                GetExitCodeProcess(sei.hProcess, &exitCode);
-                CloseHandle(sei.hProcess);
-                
-                if (exitCode == 99) {
-                    HRESULT hr = URLDownloadToFile(NULL, L"https://github.com/CoolBeanGames/zShot/releases/latest/download/zShot_updater.ps1", scriptPath.c_str(), 0, NULL);
-                    if (hr == S_OK) {
-                        continue;
-                    } else {
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
+
+    std::thread([exeDir, scriptPath]() {
+        std::wstring args = L"-ExecutionPolicy Bypass -WindowStyle Hidden -File \"" + scriptPath + L"\"";
+
+        SHELLEXECUTEINFO sei = { sizeof(sei) };
+        sei.fMask = SEE_MASK_NOCLOSEPROCESS;
+        sei.hwnd = NULL;
+        sei.lpVerb = L"open";
+        sei.lpFile = L"powershell.exe";
+        sei.lpParameters = args.c_str();
+        sei.lpDirectory = exeDir.c_str();
+        sei.nShow = SW_HIDE;
+
+        ShellExecuteEx(&sei);
+        if (sei.hProcess) CloseHandle(sei.hProcess);
     }).detach();
 }
 

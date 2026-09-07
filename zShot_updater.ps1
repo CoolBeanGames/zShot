@@ -14,86 +14,95 @@ try {
 if (-not (Test-Path $TempManifestPath)) { exit 0 }
 
 [xml]$NewManifest = Get-Content $TempManifestPath
-
-$NeedsUpdaterUpdate = $false
-$NeedsOtherUpdate = $false
+$NeedsUpdate = $false
 
 if (Test-Path $LocalManifestPath) {
     [xml]$OldManifest = Get-Content $LocalManifestPath
-    
-    # Check updater first
-    $NewUpdater = $NewManifest.manifest.item | Where-Object { $_.name -eq "zShot_updater.ps1" }
-    $OldUpdater = $OldManifest.manifest.item | Where-Object { $_.name -eq "zShot_updater.ps1" }
-    
-    if ($NewUpdater -and (-not $OldUpdater -or $NewUpdater.version -ne $OldUpdater.version)) {
-        $NeedsUpdaterUpdate = $true
-    }
-    
-    # Check other items
+
+    # Check all items for version changes or missing files
     foreach ($newItem in $NewManifest.manifest.item) {
-        if ($newItem.name -eq "zShot_updater.ps1") { continue }
         $oldItem = $OldManifest.manifest.item | Where-Object { $_.name -eq $newItem.name }
         if (-not $oldItem -or $oldItem.version -ne $newItem.version -or -not (Test-Path (Join-Path $PSScriptRoot $newItem.name))) {
-            $NeedsOtherUpdate = $true
+            $NeedsUpdate = $true
+            break
         }
     }
-    
-    # Check for deleted items
+
+    # Check for items removed from manifest
+    if (-not $NeedsUpdate) {
+        foreach ($oldItem in $OldManifest.manifest.item) {
+            $newItem = $NewManifest.manifest.item | Where-Object { $_.name -eq $oldItem.name }
+            if (-not $newItem) {
+                $NeedsUpdate = $true
+                break
+            }
+        }
+    }
+} else {
+    # No local manifest — update everything
+    $NeedsUpdate = $true
+}
+
+if (-not $NeedsUpdate) {
+    Remove-Item $TempManifestPath -Force -ErrorAction SilentlyContinue
+    exit 0
+}
+
+# Close zShot
+Get-Process -Name "zShot" -ErrorAction SilentlyContinue | Stop-Process -Force
+
+# Wait for it to fully exit
+$timeout = 10
+while ((Get-Process -Name "zShot" -ErrorAction SilentlyContinue) -and $timeout -gt 0) {
+    Start-Sleep -Milliseconds 500
+    $timeout--
+}
+
+$TempZip = Join-Path $PSScriptRoot "zShot_new.zip"
+$TempDir = Join-Path $PSScriptRoot "zShot_update_temp"
+
+Invoke-WebRequest -Uri $ZipUrl -OutFile $TempZip -UseBasicParsing
+
+if (-not (Test-Path $TempZip)) { exit 1 }
+
+if (Test-Path $TempDir) { Remove-Item -Path $TempDir -Recurse -Force }
+Expand-Archive -Path $TempZip -DestinationPath $TempDir -Force
+
+# Delete files removed from the manifest
+if (Test-Path $LocalManifestPath) {
+    [xml]$OldManifest = Get-Content $LocalManifestPath
     foreach ($oldItem in $OldManifest.manifest.item) {
         $newItem = $NewManifest.manifest.item | Where-Object { $_.name -eq $oldItem.name }
         if (-not $newItem) {
-            $NeedsOtherUpdate = $true
+            $itemPath = Join-Path $PSScriptRoot $oldItem.name
+            if (Test-Path $itemPath) { Remove-Item $itemPath -Recurse -Force }
         }
     }
-} else {
-    # No local manifest, update everything
-    $NeedsOtherUpdate = $true
 }
 
-if ($NeedsUpdaterUpdate) {
-    # zShot.exe will handle replacing the updater and rerunning
-    exit 99
-}
-
-if ($NeedsOtherUpdate) {
-    # Updater closes zShot
-    Get-Process -Name "zShot" -ErrorAction SilentlyContinue | Stop-Process -Force
-    Start-Sleep -Seconds 1
-    
-    $TempZip = Join-Path $PSScriptRoot "zShot_new.zip"
-    $TempDir = Join-Path $PSScriptRoot "zShot_update_temp"
-    
-    Invoke-WebRequest -Uri $ZipUrl -OutFile $TempZip -UseBasicParsing
-    
-    if (Test-Path $TempZip) {
-        if (Test-Path $TempDir) { Remove-Item -Path $TempDir -Recurse -Force }
-        Expand-Archive -Path $TempZip -DestinationPath $TempDir -Force
-        
-        # If something is not in the new manifest the files are deleted
-        if (Test-Path $LocalManifestPath) {
-            [xml]$OldManifest = Get-Content $LocalManifestPath
-            foreach ($oldItem in $OldManifest.manifest.item) {
-                $newItem = $NewManifest.manifest.item | Where-Object { $_.name -eq $oldItem.name }
-                if (-not $newItem) {
-                    $itemPath = Join-Path $PSScriptRoot $oldItem.name
-                    if (Test-Path $itemPath) { Remove-Item $itemPath -Recurse -Force }
-                }
-            }
+# Copy all updated files (including the updater itself — it's not currently running from $PSScriptRoot lock)
+Get-ChildItem -Path $TempDir | ForEach-Object {
+    $dest = Join-Path $PSScriptRoot $_.Name
+    if ($_.PSIsContainer) {
+        Copy-Item -Path $_.FullName -Destination $dest -Recurse -Force
+    } else {
+        # For the updater itself, write to a temp name and schedule rename via cmd
+        if ($_.Name -eq "zShot_updater.ps1") {
+            Copy-Item -Path $_.FullName -Destination "$dest.new" -Force
+            # Rename after this script exits
+            Start-Process "cmd.exe" -ArgumentList "/c timeout /t 1 /nobreak >nul && move /y `"$dest.new`" `"$dest`"" -WindowStyle Hidden
+        } else {
+            Copy-Item -Path $_.FullName -Destination $dest -Force
         }
-        
-        # Copy everything except updater
-        Get-ChildItem -Path $TempDir | Where-Object { $_.Name -notmatch 'zShot_updater' } | Copy-Item -Destination $PSScriptRoot -Recurse -Force
-        
-        Remove-Item -Path $TempDir -Recurse -Force
-        Remove-Item -Path $TempZip -Force
-        
-        # Replace manifest
-        Move-Item -Path $TempManifestPath -Destination $LocalManifestPath -Force
-        
-        # Relaunch
-        Start-Process -FilePath (Join-Path $PSScriptRoot "zShot.exe") -WorkingDirectory $PSScriptRoot
     }
-} else {
-    Remove-Item $TempManifestPath -Force
 }
+
+Remove-Item -Path $TempDir -Recurse -Force
+Remove-Item -Path $TempZip -Force
+
+# Replace manifest
+Move-Item -Path $TempManifestPath -Destination $LocalManifestPath -Force
+
+# Relaunch zShot
+Start-Process -FilePath (Join-Path $PSScriptRoot "zShot.exe") -WorkingDirectory $PSScriptRoot
 exit 0
