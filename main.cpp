@@ -17,7 +17,7 @@
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "wininet.lib")
 
-#define CURRENT_BUILD_NUMBER 9
+#define CURRENT_BUILD_NUMBER 10
 
 void CheckForUpdates(HWND hwnd) {
     HINTERNET hInternet = InternetOpen(L"zShot", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);

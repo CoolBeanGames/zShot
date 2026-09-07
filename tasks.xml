@@ -1,12 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<tasks project="zShot" nextIndex="10">
-  <task id="ZS-9">
-    <name>about window needs themed</name>
-    <prompt>it is currently missing the holo theming, if is says build 8 we dont need version 8 also</prompt>
+<tasks project="zShot" nextIndex="12">
+  <task id="ZS-10">
+    <name>about still not themed</name>
+    <prompt>the about thing is still not themed, fix it!</prompt>
     <requirements></requirements>
     <inProgress>false</inProgress>
     <done>false</done>
-    <bug>false</bug>
+    <bug>true</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>false</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>false</commit>
+    <build>false</build>
+    <release>false</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes></notes>
+    <filesChanged></filesChanged>
+    <image>ZS-10.png</image>
+  </task>
+  <task id="ZS-11">
+    <name>update broken</name>
+    <prompt>i clicked check update and it  did find one but it wouldnt open after that, i assume it was downloading the wrong file (like it was downloading the zip) so it keot trying to update or something</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>false</done>
+    <bug>true</bug>
     <error>false</error>
     <errorMessage></errorMessage>
     <lockKey></lockKey>
@@ -23,6 +48,6 @@
     <tags></tags>
     <notes></notes>
     <filesChanged></filesChanged>
-    <image>ZS-9.png</image>
+    <image></image>
   </task>
 </tasks>
