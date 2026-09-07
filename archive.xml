@@ -50,6 +50,66 @@
     <filesChanged></filesChanged>
     <image>ZS-10.png</image>
   </task>
+  <task id="ZS-14">
+    <name>add a way to set prt sc</name>
+    <prompt>set the app up so that print screen can be set to be replaced with taking a screenshot with zShot</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>true</build>
+    <release>true</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Added global Print Screen hotkey with registry persistence.</notes>
+    <filesChanged>main.cpp</filesChanged>
+    <image></image>
+  </task>
+  <task id="ZS-12">
+    <name>updater change</name>
+    <prompt>lets do this, lets also release an update_manifest
+when the app launches (or the user clicks update) the updater runs and downloads update_manifest.xml from the latest release.
+update manifest lists everything that was changes so for each xml tag
+&lt;"item" version=#&gt;
+it compares the same item for every item in the manifest
+IF the updater needs to be updated, zShot.exe replaces the updater then runs it again
+if anything else needs updated, updater closes zShot replaces it and relaunches zShot
+if something is not in the new manifest the files are deleted
+if something is on the manifest but is not in the directory it is put in the directory
+the manifest itself is then replaced with the new one
+if the manifest is missing everything is updated</prompt>
+    <requirements></requirements>
+    <inProgress>false</inProgress>
+    <done>true</done>
+    <bug>false</bug>
+    <error>false</error>
+    <errorMessage></errorMessage>
+    <lockKey></lockKey>
+    <locked>false</locked>
+    <archived>true</archived>
+    <blockedBy></blockedBy>
+    <dateStarted></dateStarted>
+    <dueDate></dueDate>
+    <commit>true</commit>
+    <build>true</build>
+    <release>true</release>
+    <merge>false</merge>
+    <branch>main</branch>
+    <tags></tags>
+    <notes>Added update_manifest.xml and manifest comparison in updater script. zShot now downloads and replaces updater if required.</notes>
+    <filesChanged>main.cpp, zShot_updater.ps1, update_manifest.xml</filesChanged>
+    <image></image>
+  </task>
   <task id="ZS-13">
     <name>UI is STILL wrong</name>
     <prompt>about UI is still wrong</prompt>
