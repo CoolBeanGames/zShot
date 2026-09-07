@@ -17,7 +17,7 @@
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "wininet.lib")
 
-#define CURRENT_BUILD_NUMBER 5
+#define CURRENT_BUILD_NUMBER 7
 
 void CheckForUpdates(HWND hwnd) {
     HINTERNET hInternet = InternetOpen(L"zShot", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
@@ -42,7 +42,15 @@ void CheckForUpdates(HWND hwnd) {
                         if (pos != std::wstring::npos) {
                             int latestBuild = _wtoi(loc.c_str() + pos + 6);
                             if (latestBuild > CURRENT_BUILD_NUMBER) {
-                                std::wstring args = L"-ExecutionPolicy Bypass -WindowStyle Hidden -File zShotUpdate.ps1 " + std::to_wstring(latestBuild);
+                                wchar_t exePath[MAX_PATH] = {0};
+                                GetModuleFileName(NULL, exePath, MAX_PATH);
+                                std::wstring exeDir = exePath;
+                                size_t lastSlash = exeDir.find_last_of(L"\\/");
+                                if (lastSlash != std::wstring::npos) {
+                                    exeDir = exeDir.substr(0, lastSlash);
+                                }
+                                std::wstring scriptPath = exeDir + L"\\zShotUpdate.ps1";
+                                std::wstring args = L"-ExecutionPolicy Bypass -WindowStyle Hidden -File \"" + scriptPath + L"\" " + std::to_wstring(latestBuild);
                                 ShellExecute(NULL, L"open", L"powershell.exe", args.c_str(), NULL, SW_HIDE);
                                 PostMessage(hwnd, WM_CLOSE, 0, 0);
                             }
