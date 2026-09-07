@@ -17,7 +17,7 @@
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "wininet.lib")
 
-#define CURRENT_BUILD_NUMBER 12
+#define CURRENT_BUILD_NUMBER 13
 
 #include <thread>
 #include <urlmon.h>
