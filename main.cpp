@@ -246,7 +246,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             nid.uID = 1;
             nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
             nid.uCallbackMessage = WM_TRAYICON;
-            nid.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(101)); // 101 is IDI_APP_ICON
+            nid.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(1)); // 1 is the icon ID
             wcscpy_s(nid.szTip, L"zShot");
             Shell_NotifyIcon(NIM_ADD, &nid);
             return 0;
@@ -292,6 +292,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.lpfnWndProc = WndProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = L"zShotHiddenWnd";
+    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(1));
     RegisterClass(&wc);
     
     HWND hwnd = CreateWindowEx(0, L"zShotHiddenWnd", L"zShot", 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
